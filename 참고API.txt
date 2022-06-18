@@ -1,0 +1,97 @@
+
+aws rds describe-db-engine-versions --engine mysql --output text --no-paginate
+aws rds describe-db-engine-versions --engine mysql --output text --filters "Name=status,Values=deprecated" 
+aws rds describe-db-engine-versions --engine mysql --output text --filters "Name=status,Values=deprecated" 
+
+aws rds describe-db-engine-versions --engine mysql --output text --query "DBEngineVersions[*].[Engine, EngineVersion]"
+aws rds describe-db-engine-versions --engine mysql --query "DBEngineVersions[*].[Engine, EngineVersion]"
+
+#JMESPath
+aws rds describe-db-engine-versions --engine mysql --query "DBEngineVersions[*].{Engine:Engine, EngineVersion:EngineVersion}"
+
+============================================================================================================
+* deprecated 버전 찾기 : --filters "Name=status,Values=deprecated" 
+                        status => available / deprecated
+* 전체 조회 : --engine mysql 제외
+* DBEngineVersionDescription 없는 값도 있음 : DBEngineVersionDescription 제외하기 
+
+aws rds describe-db-engine-versions --engine mysql
+ --query "DBEngineVersions[*].{Engine:Engine, EngineVersion:EngineVersion, DBEngineVersionDescription: DBEngineVersionDescription}"
+ --filters "Name=status,Values=deprecated" 
+
+## EOS 대상
+aws rds describe-db-engine-versions --engine mysql
+ --query "DBEngineVersions[*].{Engine:Engine, EngineVersion:EngineVersion}"
+ --filters "Name=status,Values=deprecated"
+
+
+## Support 대상
+ aws rds describe-db-engine-versions --engine mysql
+ --query "DBEngineVersions[*].{Engine:Engine, EngineVersion:EngineVersion}"
+ --filters "Name=status,Values=available" 
+
+구조??
+"Engine": "mariadb"
+"EngineVersion": "10.0.31"
+"EOS 여부" : 
+================================
+
+
+==========================================================================================
+$ aws ec2 describe-images \
+  --owner amazon \
+  --query "Images[?OwnerId=='137112412989'] | [:3].ImageId"
+
+[
+    "aki-04206613",
+    "aki-499ccb20",
+    "aki-5c21674b"
+]
+
+
+$ aws ec2 describe-images \
+  --owner amazon \
+  --query "Images[?contains(PlatformDetails, 'Linux')] | [:3]"
+
+[
+    {
+        "CreationDate": "2016-09-28T21:31:10.000Z",
+        "ImageId": "aki-04206613",
+        "PlatformDetails": "Linux/UNIX",
+        "..."
+    },
+    {...
+]
+
+
+=========================================================================================
+How can I filter the following so just results with IP starting with 10.* are returned?
+=========================================================================================
+aws ec2 describe-instances --filters "Name=tag-value,Values=mytagavalue" \
+  --query 'Reservations[*].Instances[*].{InstanceId:InstanceId,PrivateDnsName:PrivateDnsName,State:State.Name, IP:NetworkInterfaces[0].PrivateIpAddress}'
+[
+    [
+        {
+            "InstanceId": "i-12345bnmsdfod",
+            "PrivateDnsName": "ip-10-34-24-4.my.there.com",
+            "State": "running",
+            "IP": "10.10.10.4"
+        }
+    ],
+    [
+        {
+            "InstanceId": "i-12345bnmsdfop",
+            "PrivateDnsName": "",
+            "State": "terminated",
+            "IP": null
+        }
+    ],
+
+aws ec2 describe-instances --filters "Name=tag-value,Values=mytagavalue" \
+  --query 'Reservations[*].Instances[*].{InstanceId:InstanceId,PrivateDnsName:PrivateDnsName,State:State.Name, IP:NetworkInterfaces[0].PrivateIpAddress}'
+
+==> 아래와 같이 query
+
+aws ec2 describe-instances --filters "Name=tag-value,Values=mytagavalue" \
+"Name=network-interface.addresses.private-ip-address,Values=10.*" \
+  --query 'Reservations[*].Instances[*].{InstanceId:InstanceId,PrivateDnsName:PrivateDnsName,State:State.Name, IP:NetworkInterfaces[0].PrivateIpAddress}'
