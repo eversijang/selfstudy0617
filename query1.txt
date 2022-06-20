@@ -1,0 +1,4 @@
+aws rds describe-db-engine-versions --engine mysql --query "DBEngineVersions[*].{Engine:Engine, EngineVersion:EngineVersion}"
+
+aws rds describe-db-engine-versions --engine mysql --no-default-only
+aws rds describe-db-engine-versions --engine mysql --default-only

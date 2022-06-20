@@ -1,0 +1,58 @@
+===================================================================
+GetItem
+===================================================================
+aws dynamodb get-item \
+    --table-name ProductCatalog \
+    --key '{"Id":{"N":"1"}}'
+
+aws dynamodb get-item \
+    --table-name ProductCatalog \
+    --key '{"Id":{"N":"1"}}' \
+    --consistent-read \
+    --projection-expression "Description, Price, RelatedItems" \
+    --return-consumed-capacity TOTAL
+
+===================================================================
+PutItem creates a new item. 
+===================================================================
+If an item with the same key already exists in the table, 
+it is replaced with the new item.
+
+Example
+
+Write a new item to the Thread table. 
+The primary key for Thread consists of ForumName (partition key) and Subject (sort key).
+
+aws dynamodb put-item \
+    --table-name Thread \
+    --item file://item.json
+
+The arguments for --item are stored in the item.json file.
+
+{
+    "ForumName": {"S": "Amazon DynamoDB"},
+    "Subject": {"S": "New discussion thread"},
+    "Message": {"S": "First post in this thread"},
+    "LastPostedBy": {"S": "fred@example.com"},
+    "LastPostDateTime": {"S": "201603190422"}
+}
+
+
+===================================================================
+SCAN
+===================================================================
+aws dynamodb scan --table-name RDS-EOS
+
+aws dynamodb scan \
+     --table-name Thread \
+     --filter-expression "LastPostedBy = :name" \
+     --expression-attribute-values '{":name":{"S":"User A"}}'
+
+
+aws dynamodb scan \
+    --table-name Movies \
+    --projection-expression "title" \
+    --filter-expression 'contains(info.genres,:gen)' \
+    --expression-attribute-values '{":gen":{"S":"Sci-Fi"}}' \
+    --page-size 100  \
+    --debug
